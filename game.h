@@ -5,17 +5,19 @@
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
-#include "glut.h" //standard glut header
+#include <gl/glut.h> //include glut header from file directory
 
-//header files
-#include "objects.h"      // Game objects header
-#include "config.h"         // Game configs header
+//programmer made header files
+#include "gObjects.h" // Game objects header
+#include "config.h"  // Game configs header
 using namespace std;
 
 class Breakout {
 
 public:
-	//Constructor & Destructor
+	int score; //score
+
+	//Constructor / Destructor
 	Breakout();
 	~Breakout();
 
@@ -30,12 +32,11 @@ public:
 
 private:
 	// Game stats
-	int score;
-	int level;
-	int reward;
-	int lifeCount;
+	int level; //either 1 or 2
+	int reward; //reward for completing game (score boost)
+	int lifeCount; //balls / life total
 
-	// Possible ame mode
+	// game mode state
 	enum State { INIT, Menus, Gameplay, Scoreboard };
 	Breakout::State gameState;
 
@@ -59,19 +60,22 @@ private:
 	void levelOneBricks(void);
 	void levelTwoBricks(void);
 	void drawBrick(void);
-	
+
 	template <typename T>
 	int wallHit(T it);
-	
+
 	template <typename T>
 	bool brickHit(T it, T br);
-	
+
 	template <typename T>
 	T hitBrick(T brick);
-	
+
 	void drawLifeTotal(float x, float y);
 	void drawStats(void);
 	void drawScore(void);
 	void drawCoords(void);
+	void addScore(int score);
+	void displayVictory();
 };
-#endif // BREAKOUT_H
+
+#endif

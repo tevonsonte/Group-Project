@@ -1,4 +1,5 @@
 #include "game.h"
+#include <Windows.h>
 
 using namespace std;
 
@@ -37,35 +38,35 @@ void Breakout::display(void) {
 		init();
 		break;
 
-	case Menus:
-		// TODO List menu
-		break;
-
 	case Gameplay:
 		// Draw the game
 		drawGame();
 		// If no balls, player loses the game
-		if (balls.size() <= 0 & lifeCount > 0) {
+		if (balls.size() <= 0 && lifeCount > 0) {
 			addBall(-1, -1);
 			lifeCount--;
-			reward = 100;
+			reward = 100; //set loser score
 		}
 		else if (balls.size() <= 0) {
-			// TODO - GAME OVER
+			cout << "Uh oh.... The Player has lost his / her game.\n";
+			cout << "Exiting Program...\n";
+
+			system("pause");
+			exit(0);
 		}
 
-		// If no bricks, player wins the level
+		// If level 1 beaten move to level 2
 		if (bricks.size() <= 0 && level <= 2) {
 			level++;
 			brickInit();
 		}
-		else if (bricks.size() <= 0) {
-			// TODO - PLAYER WON
-		}
-		break;
+		else if (bricks.size() <= 0) { //if both levels beat add new score
+			cout << "\nThe Player has cleared both levels...\n";
+			cout << "Summoning Victory Screen...\n";
 
-	case Scoreboard:
-		// TODO
+			system("pause");
+			exit(0);
+		}
 		break;
 
 	default:
@@ -120,8 +121,6 @@ void Breakout::drawBckgrnd(void) {
 }
 
 void Breakout::drawGame(void) {
-	// // Draw coordinates for guidance
-	// drawCoordinate();
 
 	// display balls
 	drawBalls();
@@ -153,6 +152,7 @@ void Breakout::addBall(float x = -1, float y = -1) {
 		b1.velX = -5.0f;
 	b1.velY = -10.0f;
 	b1.radius = BallRadius;
+	//randomize colors of new balls !
 	b1.r = 0.4f + (float)rand() / (RAND_MAX);
 	b1.g = 0.25f + (float)rand() / (RAND_MAX);
 	b1.b = 0.4f + (float)rand() / (RAND_MAX);
@@ -160,7 +160,7 @@ void Breakout::addBall(float x = -1, float y = -1) {
 }
 
 void Breakout::drawBalls(void) {
-	for (std::vector<Ball>::iterator it = balls.begin(); it != balls.end(); ) {
+	for (vector<Ball>::iterator it = balls.begin(); it != balls.end(); ) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // use GL_LINE if no fill
 		glBegin(GL_POLYGON);
 		glColor3f(it->r, it->g, it->b);
@@ -189,7 +189,7 @@ void Breakout::drawBalls(void) {
 		}
 
 		// Collission with the bricks
-		for (std::vector<Brick>::iterator br = bricks.begin(); br != bricks.end(); ) {
+		for (vector<Brick>::iterator br = bricks.begin(); br != bricks.end(); ) {
 			// Check collission between circle and vertical brick sides
 			if (it->posY >= br->posY && it->posY <= br->posY + br->height) {
 				// brick right edge and left point on circle
@@ -289,10 +289,9 @@ void Breakout::paddleInit(void) {
 }
 
 void Breakout::drawPaddle() {
-	// Make sure paddle is larger than 25px
 	if (paddle.width < 25) {
 		paddle.width = 25;
-	}
+	} //forces specific paddle width
 
 	glColor3f(paddle.r, paddle.g, paddle.b);
 	glRectf(paddle.posX, paddle.posY, paddle.posX + 5.0f, paddle.posY + paddle.height);
@@ -301,15 +300,15 @@ void Breakout::drawPaddle() {
 }
 
 void Breakout::drawBrick(void) {
-	for (std::vector<Brick>::iterator it = bricks.begin(); it != bricks.end(); ++it) {
+	for (vector<Brick>::iterator it = bricks.begin(); it != bricks.end(); ++it) { //iterate through brick vector set colors etc.
 		glColor3f(it->r, it->g, it->b);
 		glRectf(it->posX, it->posY, it->posX + it->width, it->posY + it->height);
 
-		// Top cool triangle (kind of texture)
+		// colors for the top gradiant / triangle texture thingy to make it look cooler
 		glBegin(GL_QUADS);
-		glColor3f(it->r - 0.2f, it->g - 0.2f, it->b - 0.2f);
+		glColor3f(it->r - 0.3f, it->g - 0.2f, it->b - 0.4f);
 		glVertex2f(it->posX, it->posY);
-		glColor3f(it->r - 0.05f, it->g - 0.05f, it->b - 0.05f);
+		glColor3f(it->r - 0.05f, it->g - 0.08f, it->b - 0.1f);
 		glVertex2f(it->posX + it->width, it->posY);
 		glColor3f(it->r - 0.15f, it->g - 0.15f, it->b - 0.15f);
 		glVertex2f(it->posX + it->width, it->posY + it->height);
@@ -318,7 +317,7 @@ void Breakout::drawBrick(void) {
 	}
 }
 
-template <typename T>
+template <typename T> //handles either level of bricks
 T Breakout::hitBrick(T brick) {
 	score += reward;
 	reward += 25;
@@ -413,7 +412,7 @@ void Breakout::drawStats(void) {
 	glEnd();
 
 	float offset = 25.0f;
-	for (int i = 0; i < lifeCount & i < 10; ++i) {
+	for (int i = 0; i < lifeCount && i < 10; ++i) {
 		drawLifeTotal(35 + offset * i, 15);
 	}
 
@@ -424,7 +423,7 @@ void Breakout::drawLifeTotal(float x, float y) {
 	// Scale the heart symbol
 	float const scale = 0.5f;
 
-	// Heart symbol equations from Walfram Mathworld: http://mathworld.wolfram.com/HeartCurve.html
+	// Heart symbol equations
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBegin(GL_POLYGON);
 	glColor3f(1.0f, 0.2f, 0.2f);
@@ -437,18 +436,18 @@ void Breakout::drawLifeTotal(float x, float y) {
 	glEnd();
 }
 
-void Breakout::drawScore(void) {
+void Breakout::drawScore(void) { //display the score (either Times new roman or Helvetica)
 	glPushMatrix();
 	// Write score word
 	glColor3f(1.0f, 0.7f, 0.7f);
 	glRasterPos2f(winWidth - 120, 20);
 	char buf[300], *p;
 	p = buf;
-	sprintf(buf, "Score: ");
+	sprintf_s(buf, "Score: ");
 	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *p); while (*(++p));
 	// Print the score
 	p = buf;
-	sprintf(buf, "           %d", score);
+	sprintf_s(buf, "           %d", score);
 	glColor3f(1.0f, 0.2f, 0.2f);
 	glRasterPos2f(winWidth - 120, 20);
 	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *p); while (*(++p));
@@ -478,7 +477,7 @@ void Breakout::reshape(int width, int height) {
 		glutReshapeWindow(winWidth, winHeight);
 }
 
-void Breakout::mouseClick(int button, int state, int x, int y) {
+void Breakout::mouseClick(int button, int state, int x, int y) { //add a ball on mouse click option
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 		addBall(x, y);
 	}
@@ -487,7 +486,7 @@ void Breakout::mouseClick(int button, int state, int x, int y) {
 	glutPostRedisplay();
 }
 
-void Breakout::mouseMove(int x, int y) {
+void Breakout::mouseMove(int x, int y) { //control paddle with pure mouse movement
 	y = winHeight - y;
 	if (x - paddle.width / 2.0f >= 0 && x + paddle.width / 2.0f <= winWidth) {
 		paddle.posX = x - paddle.width / 2.0f;
@@ -503,16 +502,16 @@ void Breakout::mouseMove(int x, int y) {
 
 void Breakout::keyInput(unsigned char key, int x, int y) {
 	switch (key) {
-	case 'q': // Exit
+	case 'q': // Exit game
 		exit(0);
 		break;
 	case 'n': // New game
 		init();
 		break;
-	case 'h':
+	case 'h': //add more balls (health)
 		lifeCount++;
 		break;
-	case 27: // Esc button
+	case 27: // esc button case
 		exit(0);
 		break;
 	default:
@@ -520,7 +519,7 @@ void Breakout::keyInput(unsigned char key, int x, int y) {
 	}
 }
 
-void Breakout::specialKeyPos(int key, int x, int y) {
+void Breakout::specialKeyPos(int key, int x, int y) { //game paddle movement with arrow keys
 	switch (key)
 	{
 	case GLUT_KEY_LEFT:
