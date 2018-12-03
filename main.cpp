@@ -4,45 +4,9 @@
 #include <gl/glut.h> //include from file directory
 #include "game.h"
 #include "consoleStuff.h"
+#include "menu.h"
 #include <Windows.h>
 using namespace std;
-
-Breakout game;
-
-// display function
-void myDisplay()
-{
-	game.display();
-}
-
-// redraw function
-void redraw(int width, int height)
-{
-	game.reshape(width, height);
-}
-
-// mouse click event function
-void mouseClick(int button, int state, int x, int y)
-{
-	game.mouseClick(button, state, x, y);
-}
-
-// mouse drag event function
-void mouseMovement(int x, int y)
-{
-	game.mouseMove(x, y);
-}
-
-// key press event function
-void keyPress(unsigned char key, int x, int y)
-{
-	game.keyInput(key, x, y);
-}
-
-void specialKeyPress(int key, int x, int y)
-{
-	game.specialKeyPos(key, x, y);
-}
 
 // main
 int main(int argc, char ** argv)
@@ -77,8 +41,7 @@ int main(int argc, char ** argv)
 		// call mouse click event
 		glutMouseFunc(mouseClick);
 
-		// track mouse motion function calls
-		//	glutMotionFunc(myMouseMove);
+		// track mouse motion function call
 		glutPassiveMotionFunc(mouseMovement);
 		// grab keyboard input
 		glutKeyboardFunc(keyPress);
@@ -86,7 +49,7 @@ int main(int argc, char ** argv)
 		glutSpecialFunc(specialKeyPress);
 		// opengl loop
 		glutMainLoop();
-		
+
 	} break;
 	case 2: { //scoreboard case
 		m.scoreboard();

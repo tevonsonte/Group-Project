@@ -1,10 +1,11 @@
 #ifndef config_h
 #define config_h
 
-// Force Redraw timer
+// redraw timer
 #define refresh 16.6
 
 // window dimensions
+//set window title
 #define title "Breakout Graphic Game by Group 11"
 const int winWidth = 800;
 const int winHeight = 600;
@@ -24,6 +25,6 @@ const float pedalHeight = 12.0f;
 
 // ball settings
 const float BallRadius = 6.0f;
-const int CircleParts = 50; // draws ball and the life symbols
+const int CircleParts = 50; // variable used for both heart and ball graphics
 
 #endif

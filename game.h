@@ -74,8 +74,6 @@ private:
 	void drawStats(void);
 	void drawScore(void);
 	void drawCoords(void);
-	void addScore(int score);
-	void displayVictory();
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include "game.h"
+#include "endingStuff.h";
 #include <Windows.h>
-
+#include <mmsystem.h>
 using namespace std;
 
 void redrawFrame(int value);
@@ -41,15 +42,20 @@ void Breakout::display(void) {
 	case Gameplay:
 		// Draw the game
 		drawGame();
-		// If no balls, player loses the game
+		// If ball leaves window and player has lives, subtract 1 life
 		if (balls.size() <= 0 && lifeCount > 0) {
 			addBall(-1, -1);
 			lifeCount--;
-			reward = 100; //set loser score
-		}
+			reward = 100;
+
+		} //if no more balls and 0 lifes, end game
 		else if (balls.size() <= 0) {
+
+			system("cls");
 			cout << "Uh oh.... The Player has lost his / her game.\n";
 			cout << "Exiting Program...\n";
+
+			addScore(score);
 
 			system("pause");
 			exit(0);
@@ -61,8 +67,13 @@ void Breakout::display(void) {
 			brickInit();
 		}
 		else if (bricks.size() <= 0) { //if both levels beat add new score
+			system("cls");
 			cout << "\nThe Player has cleared both levels...\n";
 			cout << "Summoning Victory Screen...\n";
+
+			displayVictory();
+			cout << endl;
+			addScore(score);
 
 			system("pause");
 			exit(0);
@@ -73,7 +84,7 @@ void Breakout::display(void) {
 		break;
 	}
 
-	glutTimerFunc(refresh, redrawFrame, 0);
+	glutTimerFunc(refresh, redrawFrame, 0); //redraw game and use preset timer from header
 
 	glutSwapBuffers();
 }
@@ -188,18 +199,18 @@ void Breakout::drawBalls(void) {
 			continue;
 		}
 
-		// Collission with the bricks
+		// Collision with the bricks
 		for (vector<Brick>::iterator br = bricks.begin(); br != bricks.end(); ) {
-			// Check collission between circle and vertical brick sides
+			// Check collision between circle and vertical brick sides
 			if (it->posY >= br->posY && it->posY <= br->posY + br->height) {
-				// brick right edge and left point on circle
+				// ball hits right vertical side of brick
 				if ((it->posX - it->radius - br->posX - br->width) <= 5 && (it->posX - it->radius - br->posX - br->width) >= 0) {
 					it->velX *= -1;
 					br = hitBrick(br);
 					continue;
 				}
 
-				// brick left edge and right point on circle
+				// ball hits left vertical side of brick
 				if ((it->posX + it->radius - br->posX) >= -5 && (it->posX + it->radius - br->posX) <= 0) {
 					it->velX *= -1;
 					br = hitBrick(br);
@@ -207,16 +218,16 @@ void Breakout::drawBalls(void) {
 				}
 			}
 
-			// Check collission between circle and horizontal brick sides
+			// Check collision between circle and horizontal brick sides
 			if (it->posX >= br->posX && it->posX <= br->posX + br->width) {
-				// brick bottom edge and top point on circle
+				// ball hits bottom of brick
 				if ((it->posY - it->radius - br->posY - br->height) <= 10 && (it->posY - it->radius - br->posY - br->height) >= 0) {
 					it->velY *= -1;
 					br = hitBrick(br);
 					continue;
 				}
 
-				// brick top edge and bottom point on circle
+				// ball hits top of brick
 				if ((it->posY + it->radius - br->posY) >= -10 && (it->posY + it->radius - br->posY) <= 0) {
 					it->velY *= -1;
 					br = hitBrick(br);
@@ -225,7 +236,7 @@ void Breakout::drawBalls(void) {
 			}
 
 			GLfloat d;
-			// Check collission with top left corner
+			// Check collision with top left corner
 			d = pow((it->posX - br->posX), 2.0) + pow((it->posY - br->posY), 2.0);
 			if (d < it->radius + 5.0) {
 				it->velX *= -1;
@@ -234,7 +245,7 @@ void Breakout::drawBalls(void) {
 				continue;
 			}
 
-			// Check collission with top right corner
+			// Check collision with top right corner
 			d = pow((it->posX - br->posX - br->width), 2.0) + pow((it->posY - br->posY), 2.0);
 			if (d < it->radius + 5.0) {
 				it->velX *= -1;
@@ -243,7 +254,7 @@ void Breakout::drawBalls(void) {
 				continue;
 			}
 
-			// Check collission with bottom left corner
+			// Check collision with bottom left corner
 			d = pow((it->posX - br->posX), 2.0) + pow((it->posY - br->posY - br->height), 2.0);
 			if (d < it->radius + 5.0) {
 				it->velX *= -1;
@@ -264,7 +275,7 @@ void Breakout::drawBalls(void) {
 			++br; // next brick
 		}
 
-		// Check collission between paddle's top edge and bottom point on circle
+		// Check collision between paddle's top edge and bottom point on circle
 		if (it->posX >= paddle.posX && it->posX <= paddle.posX + paddle.width) {
 			if ((it->posY + it->radius - paddle.posY) >= -10 && (it->posY + it->radius - paddle.posY) <= 0) {
 				it->velY *= -1;
@@ -321,7 +332,8 @@ template <typename T> //handles either level of bricks
 T Breakout::hitBrick(T brick) {
 	score += reward;
 	reward += 25;
-	//    system("afpqlay ../../cartoon008.wav");
+	
+	PlaySound(TEXT("Beep8.wav"), NULL, SND_FILENAME | SND_ASYNC);
 
 	// Decrease brick health
 	if (brick->health > 1) {
@@ -345,26 +357,25 @@ void Breakout::brickInit(void) {
 
 void Breakout::levelOneBricks(void) {
 	Brick newBrick;
-	newBrick.r = 0.95f;
-	newBrick.g = 0.95f;
-	newBrick.b = 0.95f;
-	newBrick.health = 1;
+	//purple -> 1r and 1b , 0g values
+	//orange -> 1r / .5g , 0b values
+
 	newBrick.width = (wallWidth - (wallColmns - 2) * wallSpace) / wallColmns;
 	newBrick.height = (wallHeight - (wallRows - 2) * wallSpace) / wallRows;
 
 	for (int i = 0; i < wallRows; ++i) {
 		for (int j = 0; j < wallColmns; ++j) {
-			// Set stronger bricks
+			// Set stronger brick to purple
 			if (i + 1 > ceil(wallRows / 2.0) - 2 && i < ceil(wallRows / 2.0) + 2 && j + 2 > ceil(wallColmns / 2.0) - 3 && j < ceil(wallColmns / 2.0) + 3) {
 				newBrick.r = 1.0f;
-				newBrick.g = 0.5f;
-				newBrick.b = 0.5f;
+				newBrick.g = 0.0f;
+				newBrick.b = 1.0f;
 				newBrick.health = 2;
 			}
 			else {
-				newBrick.r = 0.95f;
-				newBrick.g = 0.95f;
-				newBrick.b = 0.95f;
+				newBrick.r = 1.0f;
+				newBrick.g = 0.50f;
+				newBrick.b = 0.00f;
 				newBrick.health = 1;
 			}
 
@@ -379,20 +390,21 @@ void Breakout::levelTwoBricks(void) {
 	Brick newBrick;
 	newBrick.width = (wallWidth - (wallColmns - 2) * wallSpace) / wallColmns;
 	newBrick.height = (wallHeight - (wallRows - 2) * wallSpace) / wallRows;
-
+	
+	//level 2 basic bricks are green
 	for (int i = 0; i < wallRows; i++) {
 		for (int j = 0; j < wallColmns; j++) {
-			// Set stronger bricks
+			// Set stronger bricks to purple
 			if (i == 1 || i == wallRows - 2 || j == 1 || j == wallColmns - 2) {
 				newBrick.r = 1.0f;
-				newBrick.g = 0.5f;
-				newBrick.b = 0.5f;
+				newBrick.g = 0.0f;
+				newBrick.b = 1.0f;
 				newBrick.health = 2;
 			}
 			else {
-				newBrick.r = 0.95f;
-				newBrick.g = 0.95f;
-				newBrick.b = 0.95f;
+				newBrick.r = 0.00f;
+				newBrick.g = 1.00f;
+				newBrick.b = 0.00f;
 				newBrick.health = 1;
 			}
 
@@ -427,6 +439,8 @@ void Breakout::drawLifeTotal(float x, float y) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBegin(GL_POLYGON);
 	glColor3f(1.0f, 0.2f, 0.2f);
+	
+	//crazy math function for the hearts
 	for (int j = 0; j < CircleParts; j++) {
 		float const theta = 2.0f * 3.1415926f * (float)j / (float)CircleParts;
 		float const xx = scale * 16.0f * sinf(theta) * sinf(theta) * sinf(theta);
@@ -438,38 +452,20 @@ void Breakout::drawLifeTotal(float x, float y) {
 
 void Breakout::drawScore(void) { //display the score (either Times new roman or Helvetica)
 	glPushMatrix();
-	// Write score word
+	//score color, font type, pos, etc.
 	glColor3f(1.0f, 0.7f, 0.7f);
 	glRasterPos2f(winWidth - 120, 20);
 	char buf[300], *p;
 	p = buf;
 	sprintf_s(buf, "Score: ");
 	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *p); while (*(++p));
-	// Print the score
+	// print score
 	p = buf;
 	sprintf_s(buf, "           %d", score);
 	glColor3f(1.0f, 0.2f, 0.2f);
 	glRasterPos2f(winWidth - 120, 20);
 	do glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *p); while (*(++p));
 	glPopMatrix();
-}
-
-void Breakout::drawCoords(void) {
-	glBegin(GL_LINES);
-	// Top left (white)
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex2f(20.0f, 10.0f);
-	glVertex2f(20.0f, 30.0f);
-	glVertex2f(10.0f, 20.0f);
-	glVertex2f(30.0f, 20.0f);
-
-	// Bottom right (red)
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glVertex2f(winWidth - 20.0f, winHeight - 10.0f);
-	glVertex2f(winWidth - 20.0f, winHeight - 30.0f);
-	glVertex2f(winWidth - 10.0f, winHeight - 20.0f);
-	glVertex2f(winWidth - 30.0f, winHeight - 20.0f);
-	glEnd();
 }
 
 void Breakout::reshape(int width, int height) {
